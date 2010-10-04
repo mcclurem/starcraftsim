@@ -1,0 +1,12 @@
+{
+	"Zealot": {
+		"minerals": 100,
+		"vespene": 0,
+		"buildtime": 20
+	},
+	"Stalker": {
+		"minerals": 150,
+		"vespene": 50,
+		"buildtime": 20
+	}
+}

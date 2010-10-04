@@ -1,0 +1,12 @@
+{
+	"Gateway": {
+		"minerals": 100,
+		"vespene": 0,
+		"buildtime": 20
+	},
+	"": {
+		"minerals": 150,
+		"vespene": 50,
+		"buildtime": 20
+	}
+}
