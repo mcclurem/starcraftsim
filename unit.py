@@ -14,63 +14,66 @@ import json
 
 units = json.load(open("./units.json", "r"))
 
-class Unit:
+class Unit(object):
     def __init__(self, simulation, unittype):
         self.simulation = simulation
         self.type = unittype
-        self.mineralcost = units[unittype].mineralcost        
-        self.vespenecost = units[unittype].vespenecost
-        self.supplycost = units[unittype].supplycost
-        self.buildtime = units[unittype].buildtime 
+        self.mineralcost = units[unittype]["Minerals"]
+        self.vespenecost = units[unittype]["Vespene"]
+        self.supplycost = units[unittype]["Supply"]
+        self.buildtime = units[unittype]["BuildTime"]
         self.status = [None] * len(self.simulation.time)
-        self.status[simulation.curstep:simulation.curstep + creation time] = "Building"
-    
-    def step(self, curstep):
-        '''General step algorithm
-        given my current state is none, should I be doing something'''
         
-    
+        self.status[simulation.curstep:simulation.curstep + self.buildtime // simulation.tstep] = (self.buildtime // simulation.tstep) * ["Building"]
+    #Default case, I don't need to do anything
+    def step(self, curstep):
+        pass
         
 class Worker(Unit):
     def __init__(self, simulation):
-        super(Worker,self).__init__(simulation)
-        walktime = 1 #time to go from nexus to resource
-        self.cost = (50, 0)
+        super(Worker, self).__init__(simulation, "Probe")
+        walktime = units["Probe"]["WalkTime"]
+        #walktime = 1 #time to go from nexus to resource
         self.walksteps = walktime // simulation.tstep
         self.node = None
-        self.status = [None] * len(self.simulation.time)
         self.carrying = None
     
     def setnode(self,node):
         if self.node is not None:
-            
-        if self.node is None:
-            self.node = 
+            self.node.removeWorker(self)
+        self.node = node
+        node.attachWorker(self)
+        self.walk()
     
     def walk(self):
         curstep = self.simulation.curstep
-        self.status[curstep:curstep + self.walksteps] = "Walking"
+        self.status[curstep:curstep + self.walksteps] = ["Walking"] * self.walksteps
         
     def trygather(self):
         if self.node is not None:
-            self.simulation.curstep = curstep
+            curstep = self.simulation.curstep
             ret = self.node.requestpickup(self)
-        if ret == "Busy":
-            self.status[curstep] == "Waiting"
-        elif ret == "Wait":
-            self.status[curstep] == "Gathering"
-        elif ret == "Empty":
-            #TODO: Do something here to re-assign probe
-            pass
+            print ret
+            if ret == "Busy":
+                self.status[curstep] = "Waiting"
+            elif ret == "Wait":
+                self.status[curstep] = "Gathering"
+            elif ret == "Empty":
+                #TODO: Do something here to re-assign probe
+                pass
+            else:
+                self.status[curstep] = "Returning"
+                self.carrying = ret
+                self.returnresource()
         else:
-            self.status = "Returning"
-            self.carrying = ret
-            self.returnresource()
+            print "nonode"
+            return
 
 
     def returnresource(self):
+        curstep = self.simulation.curstep
         if self.carrying is not None:
-            self.status[curstep:curstep + self.walksteps] = "Returning"
+            self.status[curstep:curstep + self.walksteps] = ["Returning"] * self.walksteps
 
     def step(self, curstep):
         """step is called on every iteration"""

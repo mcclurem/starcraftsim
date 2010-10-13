@@ -12,14 +12,15 @@ import os
 import unittest
 
 
-class Resource(Object):
+class Resource(object):
     def __init__(self, simulation):
+        self.simulation = simulation
         self.remaining = 0
-        self.returned = 0 # quantity received per collection
-        self.occupant = [None] * len(self.simulation)
+        self.returned = 5 # quantity received per collection
+        self.occupant = [None] * len(self.simulation.time)
         self.workers = []
-        self.timeToCollect = 2
-        
+        self.timeToCollect = 3
+    
     def attachWorker(self, worker):
         if worker in self.workers:
             return
@@ -37,12 +38,15 @@ class Resource(Object):
         if self.remaining == 0:
             return "Empty"
         if self.occupant[self.simulation.curstep] is None:
-            self.occupant[self.simulation.curstep:self.simulation.curstep + self.timeToCollect // self.simulation.tstep] = worker
+            self.occupant[self.simulation.curstep:self.simulation.curstep + self.timeToCollect // self.simulation.tstep] = [worker] * (self.timeToCollect // self.simulation.tstep)
             return "Wait"
-        if self.occupant[self.simulation.curstep] is worker and self.occupant[self.simulation.curstep + 1] is not worker:
-            retval = min(self.remaining, self.returned)
-            self.remaining -= retval
-            return (self.nodeType, retval)
+        if self.occupant[self.simulation.curstep] is worker:
+            if self.occupant[self.simulation.curstep + 1] is not worker:
+                retval = min(self.remaining, self.returned)
+                self.remaining -= retval
+                return (self.nodeType, retval)
+            else:
+                return "Wait"
         return "Busy"
         
 

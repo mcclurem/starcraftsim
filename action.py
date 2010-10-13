@@ -19,11 +19,19 @@ a structure type needed to perform it
 """
 
 
+def makeAction(string):
+    if string.startswith('Build'):
+        string = string[6:]
+        print string
+    else:
+        raise ValueError("Invalid action string")
 
 class Action(object):
     """This is a class that represents any user interaction possible"""
-    def __init__(self):
-        self.mineralcost
+    def __init__(self, string):
+        self.mineralcost = 0
+        self.vespenecost = 0
+        self.supplycost = 0
         self.delay = 0
         self.returns = None
 
@@ -36,8 +44,6 @@ class BuildUnitActionFactory(Action):
         units = json.load(open("./units.json", "r"))
         self.cost = (units[unittype]["minerals"], units[unittype]["vespene"])
         self.delay = units[unittype]["buildtime"]
-
-class UpgradeActionFactory(Action):
 
 if __name__ == '__main__':
     foo = BuildUnitFactory("Zealot")
