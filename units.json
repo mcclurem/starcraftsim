@@ -1,23 +1,25 @@
 {
 	"Probe": {
-		"Minerals" : 50,
-		"Vespene"  : 0,
-		"Supply"   : 1,
-		"BuildTime": 20,
+		"MineralCost" : 50,
+		"VespeneCost"  : 0,
+		"SupplyCost"   : 1,
+		"BuildTime": 17,
 		"WalkTime" : 2,
-		"BuiltBy"  : "Nexus"
+		"BuiltBy"  : "Nexus",
+		"Requires" : []
 	},
 	"Zealot": {
-		"Minerals" : 100,
-		"Vespene"  : 0,
-		"Supply"   : 2,
+		"MineralCost" : 100,
+		"VespeneCost"  : 0,
+		"SupplyCost"   : 2,
 		"BuildTime": 20,
-		"BuiltBy"  : "Gateway"
+		"BuiltBy"  : "Gateway",
+		"Requires" : []
 	},
 	"Stalker": {
-		"Minerals": 150,
-		"Vespene": 50,
-		"Supply"   : 2,
+		"MineralCost": 150,
+		"VespeneCost": 50,
+		"SupplyCost"   : 2,
 		"BuildTime": 20,
 		"BuiltBy"  : "Gateway",
 		"Requires" : ["Structure Cybernetics"]

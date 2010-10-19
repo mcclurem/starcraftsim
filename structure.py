@@ -10,36 +10,44 @@ Copyright (c) 2010 __MyCompanyName__. All rights reserved.
 import sys
 import os
 import unittest
+from commondefs import *
 
+import json
+from action import *
 
 #This is mostly polymorphism for the sake of documentation
 #Every structure has
 #a queue
 #
+structdata = json.load(open("./structures.json", "r"))
+
 class Structure(object):
-    def __init__(self, structtype, simulation):
+    def __init__(self, simulation, structtype):
+        self.type = structtype
         self.simulation = simulation
-        self.actions = {}
-        self.queue = []
         self.activeunits = []
-        self.status = len(self.simulation.time) * [None]
+        self.clearStatus()
+        self.stack = []
+        self.status[simulation.curstep:simulation.curstep + int(self.BuildTime // simulation.tstep)] = int(self.BuildTime // simulation.tstep) * ["Building"]
         #self.status[0:len(self.simulation.time)-1] = None
     
-    def queueAction(self):
+    def __getattr__(self, name):
+            try:
+                return super(Structure, self).__getattr__(self, name)
+            except:
+                return structdata[self.type][name]
+    
+    def clearStatus(self):
+        self.status = len(self.simulation) * [None]
+    
+    def currentstat(self):
+        return self.status[self.simulation.curstep]
+        
+    def queueAction(self,action):
         """Appends action to the queue - equivalent to pressing the button"""
-        #if weknowhow and wehavethemoney
-        #eat the money
+        self.stack.append(action)
         
         
-    def build(self, unittype):
-        """If we are allowed to build this, start build cycle"""
-        #eat the supply
-        unit = Unit(unittype)
-        
-    
-    def finish(self, unittype):
-        '''if this object def '''
-    
     def step(self, curstep):
         """Generalized algorithm:
                 we need a queue.
@@ -47,31 +55,36 @@ class Structure(object):
                 Our stack of functions must conform to the guideline that they have a return value
                 that indicates: keeptrying or goontothenextfunction
                 """
-                
         """Build unittype; Upgrade upgradename"""
-        if self.status[curstep] is None:
+        if self.stack:
+            try:
+                self.stack[0].execute()
+                self.stack.pop(0)
+            except InProgressError as e:
+                print e.args[0]
+                self.status[curstep] = e.args[0]
             
-            action, args = self.stack[0]
         
 
 class Gateway(Structure):
     def __init__(self,simulation):
-        super(Gateway, self).__init__(self, simulation)
+        super(Gateway, self).__init__( simulation, "Gateway")
         
         
         
 class Nexus(Structure):
     def __init__(self, simulation):
-        super(Nexus, self).__init__(self, simulation)
-        #TODO:this needs real actions
-        self.actions["BuildWorker"] = None
+        super(Nexus, self).__init__(simulation, "Nexus")
+        #self.stack.append(BuildUnitAction("Probe"))
         
-    def perform(self, action):
-        self.actions[action].perform(self.simulation)
-        
-    def recieve(self, resource, quant):
-        self.simulation.resources[resource] += quant
-
+    def receive(self, resource, quant):
+        if resource == "Mineral":
+            self.simulation.minerals += quant
+        elif resource == "Vespene":
+            self.simulation.minerals += quant
+        else:
+            raise ValueError("Invalid resource type")
+    
 
 if __name__ == '__main__':
     unittest.main()

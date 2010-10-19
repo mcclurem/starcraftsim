@@ -11,38 +11,62 @@ import sys
 import os
 import unittest
 import json
+from simulation import InProgressError
 
 units = json.load(open("./units.json", "r"))
+#Variable for race compatibility
+WORKERTYPE = "Probe"
+
 
 class Unit(object):
     def __init__(self, simulation, unittype):
         self.simulation = simulation
         self.type = unittype
-        self.mineralcost = units[unittype]["Minerals"]
-        self.vespenecost = units[unittype]["Vespene"]
-        self.supplycost = units[unittype]["Supply"]
-        self.buildtime = units[unittype]["BuildTime"]
-        self.status = [None] * len(self.simulation.time)
+        #self.mineralcost = units[unittype]["MineralCost"]
+        #self.vespenecost = units[unittype]["VespeneCost"]
+        #self.supplyCost = units[unittype]["Supply"]
+        #self.buildtime = units[unittype]["BuildTime"]
+        self.clearStatus()
+        self.status[simulation.curstep:simulation.curstep + int(self.BuildTime // simulation.tstep)] = int(self.BuildTime // simulation.tstep) * ["Building"]
+        if simulation.freeSupply < self.SupplyCost:
+            raise InProgressError("MOAR FOOOD")
+        else:
+            simulation.supplyused += self.SupplyCost
+    
+    def __del__(self):
+        self.simulation.supplyused -= self.SupplyCost
         
-        self.status[simulation.curstep:simulation.curstep + self.buildtime // simulation.tstep] = (self.buildtime // simulation.tstep) * ["Building"]
+    def __getattr__(self, name):
+        try:
+            return super(Unit, self).__getattr__(self, name)
+        except:
+            return units[self.type][name]
+        
     #Default case, I don't need to do anything
     def step(self, curstep):
         pass
+    
+    def currentstat(self):
+        return self.status[self.simulation.curstep]
+    
+    def clearStatus(self):
+        self.status = [None] * len(self.simulation)
         
 class Worker(Unit):
     def __init__(self, simulation):
-        super(Worker, self).__init__(simulation, "Probe")
-        walktime = units["Probe"]["WalkTime"]
+        super(Worker, self).__init__(simulation, WORKERTYPE)
+        #walktime = units["Probe"]["WalkTime"]
         #walktime = 1 #time to go from nexus to resource
-        self.walksteps = walktime // simulation.tstep
+        self.walksteps = int(self.WalkTime // simulation.tstep)
         self.node = None
         self.carrying = None
+        self.buildinprogress = []
     
     def setnode(self,node):
         if self.node is not None:
-            self.node.removeWorker(self)
+            self.node._removeWorker(self)
         self.node = node
-        node.attachWorker(self)
+        node._attachWorker(self)
         self.walk()
     
     def walk(self):
@@ -68,7 +92,9 @@ class Worker(Unit):
         else:
             print "nonode"
             return
-
+    
+    def build(self, struct):
+        self.buildinprogress.append(struct)
 
     def returnresource(self):
         curstep = self.simulation.curstep
@@ -77,6 +103,11 @@ class Worker(Unit):
 
     def step(self, curstep):
         """step is called on every iteration"""
+        for struct in self.buildinprogress:
+            if struct.currentstat() is None:
+                self.simulation.structures.append(struct)
+                self.buildinprogress.remove(struct)
+                
         #none, walking, waiting, collecting, returning
         prev = None if curstep == 0 else self.status[curstep - 1]
         if self.status[curstep] is None:
@@ -93,7 +124,11 @@ class Worker(Unit):
                     
     def deposit(self):
         if self.carrying is not None:
-            self.simulation.resources[self.carrying[0]] += self.carrying[1]
+            if self.carrying.type == "Mineral":
+                self.simulation.minerals += self.carrying.quant
+            else:
+                self.simulation.vespene += self.carrying.quant
+            
             self.carrying = None
     
    

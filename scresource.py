@@ -11,23 +11,29 @@ import sys
 import os
 import unittest
 
-
 class Resource(object):
+    def __init__(self, typ, quant):
+        self.type = typ
+        self.quant = quant
+
+
+class ResourceNode(object):
     def __init__(self, simulation):
         self.simulation = simulation
         self.remaining = 0
-        self.returned = 5 # quantity received per collection
+        self.returned = 0
         self.occupant = [None] * len(self.simulation.time)
         self.workers = []
-        self.timeToCollect = 3
+        self.timeToCollect = 1
+        self.stepsToCollect = int(self.timeToCollect // simulation.tstep)
     
-    def attachWorker(self, worker):
+    def _attachWorker(self, worker):
         if worker in self.workers:
             return
         else:
             self.workers.append(worker)
-    
-    def removeWorker(self, worker):
+
+    def _removeWorker(self, worker):
         if worker in self.workers:
             self.workers.remove(self.workers.index(worker))
     
@@ -35,33 +41,43 @@ class Resource(object):
         return len(self.workers)
     
     def requestpickup(self, worker):
+        sim = self.simulation
         if self.remaining == 0:
             return "Empty"
-        if self.occupant[self.simulation.curstep] is None:
-            self.occupant[self.simulation.curstep:self.simulation.curstep + self.timeToCollect // self.simulation.tstep] = [worker] * (self.timeToCollect // self.simulation.tstep)
-            return "Wait"
-        if self.occupant[self.simulation.curstep] is worker:
-            if self.occupant[self.simulation.curstep + 1] is not worker:
+        if self.occupant[sim.curstep] is None:
+            if self.occupant[sim.curstep - 1] is worker:
                 retval = min(self.remaining, self.returned)
                 self.remaining -= retval
-                return (self.nodeType, retval)
+                return Resource(self.nodeType,self.returned)
             else:
+                self.occupant[sim.curstep:sim.curstep + self.stepsToCollect] = [worker] * (self.stepsToCollect)
                 return "Wait"
-        return "Busy"
+        if self.occupant[self.simulation.curstep] is worker:
+            return "Wait"
+        else:
+            return "Busy"
         
 
-class MineralNode(Resource):
+class MineralNode(ResourceNode):
     def __init__(self, simulation):
         super(MineralNode, self).__init__(simulation)
         self.remaining = 1500 #todo: check this number
+        self.returned = 5
         self.nodeType = "Mineral"
 
-class RichNode(Resource):
+class RichNode(ResourceNode):
     def __init__(self):
-        super(MineralNode, self).__init__(self)
+        super(RichNode, self).__init__(self)
         self.remaining = 1500 #todo: check this number
+        self.returned = 7
         self.nodeType = "Mineral"   
-    
+
+class GasNode(ResourceNode):
+    def __init__(self):
+        super(GasNode, self).__init__(self)
+        self.remaining = 1500 #todo: check this number
+        self.returned = 5
+        self.nodeType = "Vespene"
         
 
 

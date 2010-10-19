@@ -1,14 +1,30 @@
 {
+	"Nexus": {
+		"MineralCost": 400,
+		"VespeneCost": 0,
+		"BuildTime": 100,
+		"Requires" : [],
+		"SupplyValue" : 10
+	},
+	"Pylon": {
+		"MineralCost": 100,
+		"VespeneCost": 0,
+		"BuildTime": 20,
+		"Requires" : [],
+		"SupplyValue" : 8
+	},
 	"Gateway": {
-		"minerals": 100,
-		"vespene": 0,
-		"buildtime": 20
-		"requires" : ["Nexus"]
+		"MineralCost": 150,
+		"VespeneCost": 0,
+		"BuildTime": 20,
+		"Requires" : ["Structure Nexus"],
+		"SupplyValue" : 0
 	},
 	"Cybernetics": {
-		"minerals": 150,
-		"vespene": 50,
-		"buildtime": 20
-		"requires" : "Gateway"
+		"MineralCost": 150,
+		"VespeneCost": 50,
+		"BuildTime": 20,
+		"Requires" : ["Structure Gateway"],
+		"SupplyValue" : 0
 	}
 }
