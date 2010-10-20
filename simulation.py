@@ -21,6 +21,7 @@ from scresource import *
 from collections import *
 import numpy
 import pylab
+import matplotlib.pyplot as plt
 
 
 
@@ -32,7 +33,8 @@ class simulation(object):
         self.minerals = 50
         self.vespene = 0
         self.supplyused = 0
-        self.mineralvect = []
+        self.mineralvect = [0] * len(self.time)
+        self.spendvect = [None] * len(self.time)
         self.structures = [Nexus(self)]
         self.resourcenodes = [MineralNode(self) for i in range(8)]
         self.units=[Worker(self) for i in range(6)]
@@ -84,8 +86,17 @@ class simulation(object):
                 unit.step(self.curstep)
             #Assign newunits
             self._workerAssignments()
-            self.mineralvect.append(self.minerals)
+            self.mineralvect[self.curstep] = self.minerals
+        self.plotsim()
+        
+    def plotsim(self):
         pylab.plot(self.time, self.mineralvect)
+        for el in self.spendvect:
+            if el is not None:
+                ind = self.spendvect.index(el)
+                pylab.annotate(str(el), (self.time[ind], self.mineralvect[ind]+25), rotation='vertical')
+        pylab.xlabel('time')
+        pylab.ylabel('money')
         pylab.show()
     
     def _workerAssignments(self):
@@ -103,11 +114,11 @@ class simulation(object):
     def _lamestworker(self):
         try:
             return self.idleworkers[0]
-        except IndexError as e:
+        except IndexError:
             possibles = filter(lambda x: x.node.nodeType == "Mineral", self.workers)
             try:
                 return filter(lambda x: x.currentstat() == "Walking" or x.currentstat() == "Waiting", self.workers)[0]
-            except IndexError as f:
+            except IndexError:
                 return possibles[0]
                 
                     
@@ -129,6 +140,7 @@ class simulation(object):
             except ValueError as e:
                 print e
                 return False
+            self.spendvect[self.curstep] = self.actionstack[0]
             self.actionstack.pop(0)
     
     def availableStruct(self, structtype):
@@ -140,8 +152,6 @@ class simulation(object):
         else:
             raise ValueError("No available buildings")
     
-
-    
     def _allStructures(self, structtype):
         return filter(lambda x: x.type == structtype, self.structures)
     
@@ -152,8 +162,7 @@ class simulation(object):
         """Takes in a list of prereqs and validates them"""
         for req in prereqs:
             if req[:9].upper() == 'STRUCTURE':
-                if not self.wehavebuilding(req[10:]):
-                    return False
+                return self.wehavebuilding(req[10:])
             else:
                 return False
         return True

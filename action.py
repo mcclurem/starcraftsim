@@ -54,7 +54,10 @@ class BuildUnitAction(Action):
         self.MineralCost = units[unittype]["MineralCost"]
         self.VespeneCost = units[unittype]["VespeneCost"]
         self.delay = units[unittype]["BuildTime"]
-    
+   
+    def __str__(self):
+        return "Build %s" % self.unittype
+
     def assign(self, simulation):
         print "assign"
         self.simulation = simulation
@@ -86,7 +89,10 @@ class BuildStructAction(Action):
         self.MineralCost = structdata[structtype]['MineralCost']
         self.VespeneCost = structdata[structtype]["VespeneCost"]
         self.delay = structdata[structtype]["BuildTime"]
-    
+   
+    def __str__(self):
+        return "Build %s" % self.structtype
+
     def assign(self, simulation):
         self.simulation = simulation
         if simulation.wehave(structdata[self.structtype]['Requires']):

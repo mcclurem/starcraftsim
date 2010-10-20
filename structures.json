@@ -1,4 +1,11 @@
 {
+	"Assimilator": {
+		"MineralCost": 75,
+		"VespeneCost": 0,
+		"BuildTime": 30,
+		"Requires" : ["Structure Nexus"],
+		"SupplyValue" : 0
+	},
 	"Nexus": {
 		"MineralCost": 400,
 		"VespeneCost": 0,

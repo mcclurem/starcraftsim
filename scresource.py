@@ -78,7 +78,6 @@ class GasNode(ResourceNode):
         self.remaining = 1500 #todo: check this number
         self.returned = 5
         self.nodeType = "Vespene"
-        
 
 
 if __name__ == '__main__':
