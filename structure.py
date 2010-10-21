@@ -14,12 +14,14 @@ from commondefs import *
 
 import json
 from action import *
+from scresource import *
 
 #This is mostly polymorphism for the sake of documentation
 #Every structure has
 #a queue
 #
 structdata = json.load(open("./structures.json", "r"))
+GASTYPE = "Assimilator"
 
 class Structure(object):
     def __init__(self, simulation, structtype):
@@ -35,13 +37,20 @@ class Structure(object):
             try:
                 return super(Structure, self).__getattr__(self, name)
             except:
-                return structdata[self.type][name]
+                try:
+                    return structdata[self.type][name]
+                except:
+                    raise AttributeError("No such var")
     
     def clearStatus(self):
         self.status = len(self.simulation) * [None]
-    
+        self.qstatvect = len(self.simulation) * [None]
+        
     def currentstat(self):
         return self.status[self.simulation.curstep]
+    
+    def queueLength(self):
+        return len(self.stack)
         
     def queueAction(self,action):
         """Appends action to the queue - equivalent to pressing the button"""
@@ -56,6 +65,10 @@ class Structure(object):
                 that indicates: keeptrying or goontothenextfunction
                 """
         """Build unittype; Upgrade upgradename"""
+        if self.type == GASTYPE:
+            if not hasattr(self, "gasnode"):
+                self.gasnode = GasNode(self.simulation)
+                self.simulation.resourcenodes.append(self.gasnode)
         if self.stack:
             try:
                 self.stack[0].execute()
@@ -63,7 +76,7 @@ class Structure(object):
             except InProgressError as e:
                 print e.args[0]
                 self.status[curstep] = e.args[0]
-            
+        self.qstatvect[curstep] = self.queueLength()
         
 
 class Gateway(Structure):
@@ -76,6 +89,7 @@ class Nexus(Structure):
     def __init__(self, simulation):
         super(Nexus, self).__init__(simulation, "Nexus")
         #self.stack.append(BuildUnitAction("Probe"))
+        
         
     def receive(self, resource, quant):
         if resource == "Mineral":

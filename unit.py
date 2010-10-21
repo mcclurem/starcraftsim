@@ -40,7 +40,10 @@ class Unit(object):
         try:
             return super(Unit, self).__getattr__(self, name)
         except:
-            return units[self.type][name]
+            try:
+                return units[self.type][name]
+            except:
+                raise AttributeError("No such var")
         
     #Default case, I don't need to do anything
     def step(self, curstep):

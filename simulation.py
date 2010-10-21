@@ -34,6 +34,8 @@ class simulation(object):
         self.vespene = 0
         self.supplyused = 0
         self.mineralvect = [0] * len(self.time)
+        self.gasvect = [0] * len(self.time)
+        self.supplyvect = [0] * len(self.time)
         self.spendvect = [None] * len(self.time)
         self.structures = [Nexus(self)]
         self.resourcenodes = [MineralNode(self) for i in range(8)]
@@ -86,17 +88,22 @@ class simulation(object):
                 unit.step(self.curstep)
             #Assign newunits
             self._workerAssignments()
+            self.supplyvect[self.curstep] = self.supplyused
             self.mineralvect[self.curstep] = self.minerals
+            self.gasvect[self.curstep] = self.vespene
         self.plotsim()
         
     def plotsim(self):
-        pylab.plot(self.time, self.mineralvect)
+        pylab.subplot(211)
+        pylab.plot(self.time, self.mineralvect, 'b-', self.time, self.gasvect, 'g-')
         for el in self.spendvect:
             if el is not None:
                 ind = self.spendvect.index(el)
                 pylab.annotate(str(el), (self.time[ind], self.mineralvect[ind]+25), rotation='vertical')
         pylab.xlabel('time')
         pylab.ylabel('money')
+        pylab.subplot(212)
+        pylab.plot(self.time, self.supplyvect, 'r-', self.time, self.availableStruct("Nexus").qstatvect, 'b-')
         pylab.show()
     
     def _workerAssignments(self):
@@ -120,8 +127,6 @@ class simulation(object):
                 return filter(lambda x: x.currentstat() == "Walking" or x.currentstat() == "Waiting", self.workers)[0]
             except IndexError:
                 return possibles[0]
-                
-                    
     
     #TODO: ValueError seems inaproppriate here
     def spend(self, minerals, vespene):
@@ -174,7 +179,7 @@ class simulationTests(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    foo = simulation('buildorder', 60*2)
+    foo = simulation('buildorder', 60*3)
     foo.run()
     #bar = MineralNode(foo)
     #foo.units[0].setnode(bar)

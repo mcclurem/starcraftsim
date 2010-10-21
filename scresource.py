@@ -15,8 +15,7 @@ class Resource(object):
     def __init__(self, typ, quant):
         self.type = typ
         self.quant = quant
-
-
+    
 class ResourceNode(object):
     def __init__(self, simulation):
         self.simulation = simulation
@@ -32,10 +31,10 @@ class ResourceNode(object):
             return
         else:
             self.workers.append(worker)
-
+    
     def _removeWorker(self, worker):
         if worker in self.workers:
-            self.workers.remove(self.workers.index(worker))
+            self.workers.remove(worker)
     
     def workercount(self):
         return len(self.workers)
@@ -56,8 +55,7 @@ class ResourceNode(object):
             return "Wait"
         else:
             return "Busy"
-        
-
+    
 class MineralNode(ResourceNode):
     def __init__(self, simulation):
         super(MineralNode, self).__init__(simulation)
@@ -66,15 +64,15 @@ class MineralNode(ResourceNode):
         self.nodeType = "Mineral"
 
 class RichNode(ResourceNode):
-    def __init__(self):
-        super(RichNode, self).__init__(self)
+    def __init__(self,simulation):
+        super(RichNode, self).__init__(simulation)
         self.remaining = 1500 #todo: check this number
         self.returned = 7
         self.nodeType = "Mineral"   
 
 class GasNode(ResourceNode):
-    def __init__(self):
-        super(GasNode, self).__init__(self)
+    def __init__(self, simulation):
+        super(GasNode, self).__init__(simulation)
         self.remaining = 1500 #todo: check this number
         self.returned = 5
         self.nodeType = "Vespene"
